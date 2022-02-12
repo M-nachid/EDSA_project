@@ -1,0 +1,578 @@
+---
+title: "Lubridate Package_DateTime"
+author: "Mohamed Nachid"
+output: pdf_document
+Email: boussiala@nachid@univ-alger3.dz
+---
+
+#################################################################
+##             Using lubridate for dates and times             ##
+#################################################################
+
+
+## 1 Introduction:
+
+At first glance, dates and times seem simple. You use them all the time in your regular life, and they don't seem to cause much confusion. However, the more you learn about dates and times, the more complicated they seem to get. To warm up, try these three seemingly simple questions:
+
+1.Does every year have 365 days?
+2.Does every day have 24 hours?
+3.Does every minute have 60 seconds?
+
+Not Every year has 365 days, so there exists a rule for determining if a year is a leap year? (It has three parts.) 
+Also many countries use daylight savings time (DST), so that some days have 23 hours, and others have 25. 
+Note that some minutes have 61 seconds because every now and then leap seconds are added because the Earth's rotation is gradually slowing down.
+
+In raw datasets, dates and times can be included in datasets as different types: strings, separate date-time components, or from an existing date/time object.
+
+In this Tutorial will try to show you how to work with dates and times in R. 
+We'll use tools from the lubridate package that can help us to deal with issues presented by dates and times in our dataset.
+
+##1.1 Prerequisites:
+
+We'll be focusing on the lubridate package, which has ability to deal with dates and times in R,make sure in your mind that lubridate is not part of core tidyverse because you only need it when you're working with dates/times so go ahead and load that as well. 
+We will also need nycflights13 for practice data.
+(If you haven't installed that yet, type install.packages("nycflights13") before you load it.)
+ 
+###Classes for dates and times:
+
+R doesn't have a native class for storing times,  It only has a class for dates and date-times. 
+If you want know time classes, look into the hms package.
+
+```{r , echo=TRUE, message=FALSE, warning=FALSE}
+if (!require(tidyverse)) install.packages("tidyverse")
+if (!require(lubridate)) install.packages("lubridate")
+if (!require(nycflights13)) install.packages("nycflights13")
+if (!require(hms)) install.packages("hms")
+```
+
+## 2 Creating date/times
+
+to refer that data is Time,  There are three types of date/time data:
+
+- A **date**. *Tibbles print this as <date>*.
+
+- A **time** within a day. *Tibbles print this as <time>*.
+
+- A **date-time**  *Tibbles print this as <dttm>*. 
+
+To get the current date use today(): 
+
+```{r , echo=TRUE, message=FALSE, warning=FALSE}
+today()
+```
+
+or date-time you can use now():
+
+```{r , echo=TRUE, message=FALSE, warning=FALSE}
+now()
+```
+
+Otherwise, there are three ways you're likely to create a date/time:
+
+    From a string.
+    From individual date-time components.
+    From an existing date/time object.
+
+## 2.1 From strings
+
+
+the functions in the "lubridate" package make it confusingly easy to transform a *string* class vector into a *date* class vector.
+To do this, all you have to do is indicate which elements are filled in the character string (and in what order). This is the name of the function that performs this function.
+For example, I want R to understand the elements that make up the character string "April 11, 2022": I will therefore tell it that the elements are the day (d like day) the month (m like month) and the year (y as year):
+
+```{r , echo=TRUE, message=FALSE, warning=FALSE}
+today()
+```
+
+```{r , echo=TRUE, message=FALSE, warning=FALSE}
+class('2022-02-11')
+```
+
+```{r , echo=TRUE, message=FALSE, warning=FALSE}
+dmy("11 February 2022")
+```
+
+```{r , echo=TRUE, message=FALSE, warning=FALSE}
+day <- dmy("11 February 2022")
+```
+
+```{r , echo=TRUE, message=FALSE, warning=FALSE}
+class(day)
+```
+
+*Switching between date-time and date objects*
+
+## From other types
+
+__Use as_datetime() and as_date():__
+
+we may want to switch between a date-time and a date. 
+That's the job of as_datetime() and as_date():
+
+```{r , echo=TRUE, message=FALSE, warning=FALSE}
+as_datetime(today())
+```
+
+```{r , echo=TRUE, message=FALSE, warning=FALSE}
+as_date(now())
+```
+
+Sometimes we'll get date/times as numeric offsets from the "Unix Epoch", 1970-01-01. 
+If the offset is in **seconds**, use **as_datetime()**; 
+if it's in **days**, use **as_date()**.
+
+```{r , echo=TRUE, message=FALSE, warning=FALSE}
+as_datetime(86400) #86400s= 1day
+
+as_date(365) # 365days= 1 yr
+```
+
+#######################
+
+```{r , echo=TRUE, message=FALSE, warning=FALSE}
+mdy("February 11th, 2022")
+```
+
+
+```{r , echo=TRUE, message=FALSE, warning=FALSE}
+ymd("2022-02-11")
+```
+
+```{r , echo=TRUE, message=FALSE, warning=FALSE}
+dmy("11-Feb-2022")
+```
+
+```{r , echo=TRUE, message=FALSE, warning=FALSE}
+ymd("20220211")
+```
+
+These functions also take unquoted numbers. This is the most concise way to create a single date/time object, as you might need when filtering date/time data. ymd() is short and unambiguous:
+
+```{r , echo=TRUE, message=FALSE, warning=FALSE}
+ymd("20220211")
+```
+
+
+```{r , echo=TRUE, message=FALSE, warning=FALSE}
+mdy("02112022")
+```
+
+```{r , echo=TRUE, message=FALSE, warning=FALSE}
+dmy("11022022")
+```
+
+_To create a date-time, add h (hour), m (minute), or s (second) to your parsing function:_
+
+```{r , echo=TRUE, message=FALSE, warning=FALSE}
+ymd_hm('2022-Feb-11 18:00')
+```
+
+```{r , echo=TRUE, message=FALSE, warning=FALSE}
+ymd_hms('2022-Feb-11 18:00:11')
+```
+
+```{r , echo=TRUE, message=FALSE, warning=FALSE}
+hms(56, 34, 17)
+```
+
+```{r , echo=TRUE, message=FALSE, warning=FALSE}
+hm("17 55")
+```
+
+```{r , echo=TRUE, message=FALSE, warning=FALSE}
+hm("17, 55")
+```
+
+
+_Adding a time zone also creates a date-time object:_
+
+```{r , echo=TRUE, message=FALSE, warning=FALSE}
+ymd(20220211, tz = "UTC")
+```
+
+**Retrieve date elements**
+
+Now that we know how to make R understand how to interpret a character string as a date-time, we will be able to perform some simple operations.
+
+To start, we can try to isolate one of the elements of the date-time (just the year, or just the month, or just the hour, etc.).
+
+Here again, it is through the name of the function used that we will specify which element interests us.
+
+```{r , echo=TRUE, message=FALSE, warning=FALSE}
+t <- ymd_hms("2022.02.11 17h37min52s")
+date(t)
+hour(t)
+minute(t)
+second(t)
+```
+
+__Getting individual components of a date or time__
+
+You can pull out individual parts of the date and time with year(), month(), mday() (day of the month), yday() (day of the year), wday() (day of the week), hour(), minute(), and second() functions.
+
+```{r , echo=TRUE, message=FALSE, warning=FALSE}
+t <- ymd_hms("2022.02.11 17h37min52s")
+year(t)
+month(t)
+mday(t)
+yday(t)
+wday(t)
+```
+
+Setting *label=TRUE* for month() and wday() returns the abbreviated name of the month or day of the week. Try also setting *abbr=FALSE*.
+
+```{r , echo=TRUE, message=FALSE, warning=FALSE}
+t <- ymd_hms("2022.02.11 17h37min52s")
+month(t, label = T, abbr = F )
+wday(t, label = T, abbr = F )
+```
+
+
+**Round**
+
+You can also round a date, up (ceiling_date()), down (floor_date()), or towards the nearest (round_date()):
+
+**Hour**
+```{r , echo=TRUE, message=FALSE, warning=FALSE}
+t <- ymd_hms("2022.02.11 17h37min52s")
+ceiling_date(t, 'hour')
+floor_date(t, 'hour')
+round_date(t, 'hour')
+```
+
+```{r , echo=TRUE, message=FALSE, warning=FALSE}
+t <- ymd_hms("2022.02.11 17h37min52s")
+round_date(t, ".5s")
+round_date(t, "sec")
+round_date(t, "second")
+round_date(t, "minute")
+round_date(t, "5 mins")
+round_date(t, "hour")
+round_date(t, "2 hours")
+round_date(t, "day")
+round_date(t, "week")
+round_date(t, "month")
+round_date(t, "bimonth")
+round_date(t, "quarter") 
+round_date(t, "halfyear")
+round_date(t, "year")
+```
+
+```{r , echo=TRUE, message=FALSE, warning=FALSE}
+t <- ymd_hms("2022.02.11 17h37min52s")
+floor_date(t, ".5s")
+floor_date(t, "sec")
+floor_date(t, "second")
+floor_date(t, "minute")
+floor_date(t, "5 mins")
+floor_date(t, "hour")
+floor_date(t, "2 hours")
+floor_date(t, "day")
+floor_date(t, "week")
+floor_date(t, "month")
+floor_date(t, "bimonth")
+floor_date(t, "quarter") 
+floor_date(t, "halfyear")
+floor_date(t, "year")
+```
+
+```{r , echo=TRUE, message=FALSE, warning=FALSE}
+t <- ymd_hms("2022.02.11 17h37min52s")
+ceiling_date(t, ".5s")
+ceiling_date(t, "sec")
+ceiling_date(t, "second")
+ceiling_date(t, "minute")
+ceiling_date(t, "5 mins")
+ceiling_date(t, "hour")
+ceiling_date(t, "2 hours")
+ceiling_date(t, "day")
+ceiling_date(t, "week")
+ceiling_date(t, "month")
+ceiling_date(t, "bimonth")
+ceiling_date(t, "quarter") 
+ceiling_date(t, "halfyear")
+ceiling_date(t, "year")
+```
+
+
+
+**Periods or durations**
+
+```{r , echo=TRUE, message=FALSE, warning=FALSE}
+t1 <- dmy("17/07/2019")
+t2 <- dmy("17/04/2022")
+diff <- t2-t1
+class(diff)
+```
+
+The diff object tells us about the "time difference" between t1 and t2. It is an object of class difftime (class which is not specifically related to the use of lubridate).
+This "time difference" can be addressed in various ways by lubridate. We can indeed consider this difference in terms of period or in terms of duration.
+
+It is specified as follows:
+
+```{r , echo=TRUE, message=FALSE, warning=FALSE}
+as.duration(diff)
+
+as.period(diff)
+
+```
+
+**Arithmetic calculations with periods or durations**
+
+In the previous part, we have already seen that it was possible to perform arithmetic operations on dates. Whatever the operation carried out, it is important to keep in mind the distinction between period and duration! The periods correspond to the xxx() functions (for example days() or months()) while the durations correspond to the dxxx() functions (for example ddays() or dyears())
+
+```{r , echo=TRUE, message=FALSE, warning=FALSE}
+t1+months(9) 
+t1+ddays(268)
+ddays(268)/dweeks(1) # how week we have in 268 days
+t2-dweeks(3)
+
+```
+
+_Note that these functions also allow you to create series at regular time intervals:_
+
+```{r , echo=TRUE, message=FALSE, warning=FALSE}
+t1+months(1:9) 
+```
+
+```{r , echo=TRUE, message=FALSE, warning=FALSE}
+now()+minutes(seq(0,30,by=10))
+```
+
+**Time intervals**
+
+Another way to look at analyzing a dataset that includes dates is to work on time intervals.
+
+To transform two dates into a time interval with lubridate, we have two solutions (the interval() function, or the %--% operator. In both cases, we obtain the same result:
+
+```{r , echo=TRUE, message=FALSE, warning=FALSE}
+itv <- interval(t1,t2)
+itv1 <- t1 %--% t2
+itv
+itv1
+```
+
+Having an interval allows you to perform certain operations, such as (for example) determining whether a given date (or "date-time") is part of the interval:
+
+```{r , echo=TRUE, message=FALSE, warning=FALSE}
+d1 <- dmy("04/12/2019")
+d1 %within% itv
+```
+
+One of the operations,the most useful in connection with these intervals, is thus to allow the occurrence of one or more events to be replaced in time intervals:
+
+```{r, echo=F , message= F, warning= F} 
+sitv <- int_diff(t1+months(1:9))
+sitv
+```
+
+```{r, echo=F, message=F, warning=F}
+d1 %within% sitv
+```
+
+
+#=============================
+We can  use each accessor function to set the components of a date/time:
+
+```{r, echo=F, message=F, warning=F}
+(datetime <- ymd_hms("2019-07-08 12:34:56"))
+```
+
+```{r, echo=F, message=F, warning=F}
+year(datetime) <- 2022
+datetime
+```
+
+```{r, echo=F, message=F, warning=F}
+month(datetime) <- 02
+datetime
+```
+
+```{r, echo=F, message=F, warning=F}
+hour(datetime) <- hour(datetime) + 1
+datetime
+```
+
+Alternatively, rather than modifying in place, you can create a new date-time with update(). This also allows you to set multiple values at once.
+
+```{r, echo=F, message=F, warning=F}
+(datetime <- ymd_hms("2019-07-08 12:34:56"))
+update(datetime, year = 2022, month = 2, mday = 11, hour = 2)
+```
+
+If values are too big, they will roll-over:
+
+```{r, echo=F, message=F, warning=F}
+ymd("2019-02-01") %>% 
+  update(mday = 30)
+```
+
+```{r, echo=F, message=F, warning=F}
+ymd("2019-02-01") %>% 
+  update(hour = 400)
+```
+
+
+
+
+
+## 2.2 Applying the above codes
+
+Instead of a single string, sometimes you'll have the individual components of the date-time spread across multiple columns. 
+This is what we have in the flights data:
+
+```{r, echo=F, message=F, warning=F}
+flights %>% 
+  select(year, month, day, hour, minute)
+#View(select(flights,year, month, day, hour, minute))
+```
+
+__Using mutate() and make_date() or make_datetime(), we can create date/time objects:__
+
+```{r, echo=F, message=F, warning=F}
+flights %>% 
+  select(year, month, day, hour, minute) %>% 
+  mutate(departure = make_datetime(year, month, day, hour, minute))
+```
+
+Let's do the same thing for each of the four time columns in *-flights-*. The times are represented in a slightly odd format, so we use modulus arithmetic to pull out the hour and minute components. Once we've created the date-time variables, we focus in on the variables we'll explore in the rest of the Tutorial.
+
+```{r, echo=F, message=F, warning=F}
+make_datetime_100 <- function(year, month, day, time) {
+  make_datetime(year, month, day, time %/% 100, time %% 100)
+}
+
+flights_dt <- flights %>% 
+  filter(!is.na(dep_time), !is.na(arr_time)) %>% 
+  mutate(
+    dep_time = make_datetime_100(year, month, day, dep_time),
+    arr_time = make_datetime_100(year, month, day, arr_time),
+    sched_dep_time = make_datetime_100(year, month, day, sched_dep_time),
+    sched_arr_time = make_datetime_100(year, month, day, sched_arr_time)
+  ) %>% 
+  select(origin, dest, ends_with("delay"), ends_with("time"))
+
+flights_dt
+#view(flights_dt) # to View the new data
+```
+
+The visualisation of the distribution of departure times across the year:
+
+```{r, echo=F, message=F, warning=F}
+flights_dt %>% 
+  ggplot(aes(dep_time)) + 
+  geom_freqpoly(binwidth = 86400, colour = 'blue') # 86400 seconds = 1 day
+```
+
+### The code below rounds the flight times to the nearest week!
+
+```{r, echo=F, message=F, warning=F}
+flights_dt %>% 
+  count(week = floor_date(dep_time, "week")) %>% 
+  ggplot(aes(week, n)) +
+    geom_line(colour = 'red')
+```
+
+### Or within a single day:
+
+```{r, echo=F, message=F, warning=F}
+flights_dt %>% 
+  filter(dep_time < ymd(20130102)) %>% 
+  ggplot(aes(dep_time)) + 
+  geom_freqpoly(binwidth = 600, colour= 'purple') # 600 s = 10 minutes
+```
+
+**Note that when you use date-times in a numeric context (like in a histogram), 1 means 1 second, so a binwidth of 86400 means one day. For dates, 1 means 1 day.**
+
+__We can use wday() to see that more flights depart during the week than on the weekend:__
+
+```{r, echo=F, message=F, warning=F}
+flights_dt %>% 
+  mutate(wday = wday(dep_time, label = TRUE)) %>% 
+  ggplot(aes(x = wday)) +
+    geom_bar(colour='#EE1289')
+```
+
+__There's an interesting pattern if we look at the average departure delay by minute within the hour. It looks like flights leaving in minutes 20-30 and 50-60 have much lower delays than the rest of the hour!__
+
+```{r, echo=F, message=F, warning=F}
+flights_dt %>% 
+  mutate(minute = minute(dep_time)) %>% 
+  group_by(minute) %>% 
+  summarise(
+    avg_delay = mean(arr_delay, na.rm = TRUE),
+    n = n()) %>% 
+  ggplot(aes(minute, avg_delay)) +
+    geom_line(colour='#EE1289')
+```
+
+__Interestingly, if we look at the scheduled departure time we don't see such a strong pattern:__
+
+
+```{r, echo=F, message=F, warning=F}
+sched_dep <- flights_dt %>% 
+  mutate(minute = minute(sched_dep_time)) %>% 
+  group_by(minute) %>% 
+  summarise(
+    avg_delay = mean(arr_delay, na.rm = TRUE),
+    n = n())
+#> `summarise()` ungrouping output (override with `.groups` argument)
+ggplot(sched_dep, aes(minute, avg_delay)) +
+  geom_line(colour='#FF3030')
+```  
+  
+**So why do we see that pattern with the actual departure times? Well, like much data collected by humans, there's a strong bias towards flights leaving at "nice" departure times. Always be alert for this sort of pattern whenever you work with data that involves human judgement!**
+
+```{r, echo=F, message=F, warning=F}
+ggplot(sched_dep, aes(minute, n)) +
+  geom_line(colour='#FF3030')
+```  
+  
+**We can use update() to show the distribution of flights across the course of the day for every day of the year:**
+
+```{r, echo=F, message=F, warning=F}
+flights_dt %>% 
+  mutate(dep_hour = update(dep_time, yday = 1)) %>% 
+  ggplot(aes(dep_hour)) +
+    geom_freqpoly(binwidth = 300, colour='#CD9B1D')
+```  
+
+**We can use periods to fix an oddity in the flight dataset: some flights appear to arrive at their destination before they departed from New York City. This is because they are overnight flights. We can address the issue by adding one day to all of the overnight flights.**
+
+```{r, echo=F, message=F, warning=F}
+flights_dt %>% 
+  filter(arr_time < dep_time) 
+``` 
+
+**These are overnight flights. We used the same date information for both the departure and the arrival times, but these flights arrived on the following day. We can fix this by adding days(1) to the arrival time of each overnight flight.**
+
+```{r, echo=F, message=F, warning=F}
+flights_dt <- flights_dt %>% 
+  mutate(
+    overnight = arr_time < dep_time,
+    arr_time = arr_time + days(overnight * 1),
+    sched_arr_time = sched_arr_time + days(overnight * 1)
+  ) 
+``` 
+
+**Now all of our flights obey the laws of physics.**
+
+```{r, echo=F, message=F, warning=F}
+flights_dt %>% 
+  filter(overnight, arr_time < dep_time) 
+``` 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
