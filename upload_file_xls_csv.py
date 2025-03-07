@@ -3,9 +3,9 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 # Title of the app
-st.title("Upload CSV or Excel File and Plot Selected Columns
-# Edited By Boussiala Mohamed Nachid
-         boussiala.nachid@univ-alger3.dz")
+st.title("Upload CSV or Excel File and Plot Selected Columns"
+"# Edited By Boussiala Mohamed Nachid"
+         "boussiala.nachid@univ-alger3.dz")
 
 # File uploader widget
 uploaded_file = st.file_uploader("Choose a CSV or Excel file", type=["csv", "xlsx"])
