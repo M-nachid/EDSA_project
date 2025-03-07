@@ -50,5 +50,3 @@ if uploaded_file is not None:
         st.write("Please select at least one column to plot.")
 else:
     st.write("Please upload a file.")
-#Create an external link
-st.markdown("[Boussiala_Nachid](www.boussiala_nachid.com)")
