@@ -8,7 +8,7 @@ import seaborn as sns
 from statsmodels.stats.outliers_influence import variance_inflation_factor
 from statsmodels.stats.diagnostic import het_breuschpagan, het_white
 from scipy import stats
-
+import base64
 from statsmodels.stats.stattools import durbin_watson
 from statsmodels.stats.diagnostic import linear_reset
 from statsmodels.graphics.gofplots import ProbPlot
@@ -165,8 +165,35 @@ def main():
                 model = sm.OLS(y, X).fit()
 
                 # Display the regression results
-                st.write("Regression Results:")
-                st.write(model.summary())
+                #st.write("Regression Results:")
+                #st.write(model.summary())
+
+                # Display results
+                col1, col2 = st.columns([2, 1])
+
+                with col1:
+                    st.subheader("Model Summary")
+                    st.text(model.summary().as_text())
+
+                    # Download link for regression results
+                    summary_html = model.summary().as_html()
+                    b64 = base64.b64encode(summary_html.encode()).decode()
+                    href = f'<a href="data:text/html;base64,{b64}" download="regression_results.html">Download regression results as HTML</a>'
+                    st.markdown(href, unsafe_allow_html=True)
+
+                with col2:
+                    st.subheader("Interpretation")
+                    st.markdown("""
+                    **Key Statistics:**
+                    - **R-squared**: Proportion of variance explained by the model
+                    - **Adjusted R-squared**: R-squared adjusted for the number of predictors
+                    - **F-statistic**: Tests if at least one coefficient is non-zero
+                    - **Prob (F-statistic)**: p-value for the F-statistic, should be < 0.05
+                    - **Coefficient**: Effect of one unit change in X on Y
+                    - **P>|t|**: p-value for each coefficient, should be < 0.05
+                    - **Confidence Interval**: Range of plausible values for each coefficient
+                    """)
+
 
                 # Display the regression equation
                 st.subheader("Regression Equation")
