@@ -36,13 +36,21 @@ def main():
     st.markdown(" <h3 style='text-align: center; color: darkgray; font-size:18;'> Multiple Regression is a statistical technique used to model the relationship between "
                  "one dependent variable and two or more independent variables. The goal of multiple regression is to understand how the dependent variable " 
                  "changes when any of the independent variables are varied while keeping the other independent variables constant.</h3>", unsafe_allow_html=True)
-    st.write("Key Points:")
-    st.write("**Dependent Variable**: The outcome or response variable that you are trying to predict or explain.")
+    st.markdown("""
+                **Key Points**:
+                - **Dependent Variable**: The outcome or response variable that you are trying to predict or explain.
+                - **Independent Variables**: The predictors or explanatory variables that are used to predict the dependent variable.
+                - **Equation**: The relationship is typically expressed in the form of a linear equation:
+                    - Y = β₀ + β₁X₁ + β₂X₂ + ... + βₙXₙ + ε
+                
+                    Where:
+                    - Y: Dependent variable (target/ label)
+                    - β₀: Intercept (value of Y when all X are 0)
+                    - β₁, β₂, ..., βₙ: Coefficients of the independent variables
+                    - X₁, X₂, ..., Xₙ: Independent variables (features/ Explanatory)
+                    - ε: Error term (unexplained variability)
 
-    st.write("**Independent Variables**: The predictors or explanatory variables that are used to predict the dependent variable.")
-             
-    st.write("**Equation**: The relationship is typically expressed in the form of a linear equation:")
-
+                """)
     
     # Set the title of the app
     
