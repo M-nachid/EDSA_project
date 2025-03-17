@@ -13,6 +13,8 @@ from statsmodels.stats.stattools import durbin_watson
 from statsmodels.stats.diagnostic import linear_reset
 from statsmodels.graphics.gofplots import ProbPlot
 import scipy.stats as stats
+import scipy as sp
+import statsmodels.stats.diagnostic as smd
 
 import warnings
 
@@ -51,6 +53,7 @@ def main():
                     - ε: Error term (unexplained variability)
 
                 """)
+
     
     # Set the title of the app
     
@@ -144,6 +147,23 @@ def main():
             # Display the heatmap in Streamlit
             #st.pyplot(fig)
             st.write(fig)
+
+        st.markdown("Scatter plot is also a good choice for eyeballing the correlation. "
+        "If you are not sure what it means to have high correlation, review Lecture 1's notes, "
+        "we have demonstrated the difference between correlation and regression.")
+        fig, ax = plt.subplots(figsize=(15, 10), facecolor= 'lightblue')
+        g=sns.PairGrid(df[numeric_columns])
+        g.map_diag(sns.histplot)
+        g.map_offdiag(sns.scatterplot)
+        g.add_legend(True)
+        # Display the PairGrid
+        plt.subplots_adjust(top=0.9)
+        g.fig.suptitle("PairGrid Visualization", color='darkorange',
+                    font='georgia', 
+                    fontweight= 'bold',
+                    fontsize= 24)
+        st.pyplot(g.fig)
+
 
 #**********************************************************************
 
@@ -345,6 +365,27 @@ def main():
                 else:
                     st.warning("Conclusion: Reject the null hypothesis. Residuals are Heteroskedastic.")
 
+                ##
+                # Perform Goldfeld-Quandt test
+                st.markdown(" <h5 style='text-align: left; color: darkviolet; font-size:18;'> Goldfeld-Quandt Test for Heteroscedasticity </h5>", unsafe_allow_html=True)
+                
+                test_statistic, p_value, _ = smd.het_goldfeldquandt(y, X, drop=0.2)
+
+                # Display the results
+                st.write("Goldfeld-Quandt Test Results:")
+                gf= pd.DataFrame({
+                    'Test Statistic:': [test_statistic],
+                    'P-Value:': [p_value]
+                })
+
+                st.dataframe(gf)
+
+                # Interpret the results
+                if p_value > 0.05:
+                    st.success("Conclusion: Fail to Reject the null hypothesis: Heteroscedasticity is not present.")
+                else:
+                    st.warning("Conclusion: Reject the null hypothesis : Heteroscedasticity is present.")
+
                 # White test
                 st.markdown(" <h5 style='text-align: left; color: darkviolet; font-size:18;'> White test for Heteroskedasticity </h5>", unsafe_allow_html=True)
 
@@ -400,6 +441,7 @@ def main():
                 else:
                     st.success("No autocorrelation detected.")
 
+                
 
                 
                 
