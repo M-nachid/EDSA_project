@@ -4,3 +4,5 @@ matplotlib
 statsmodels
 arch
 openpyxl
+base64
+scipy
