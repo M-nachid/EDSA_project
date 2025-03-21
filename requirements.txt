@@ -6,4 +6,4 @@ arch
 openpyxl
 scipy
 sklearn
-scikit-learn
+
