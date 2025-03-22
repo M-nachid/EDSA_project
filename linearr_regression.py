@@ -1,7 +1,5 @@
-import streamlit as st
-import pandas as pd
-from sklearn.linear_model import LinearRegression
-import plotly.graph_objs as go
+
+
 
 import streamlit as st
 import pandas as pd
@@ -9,14 +7,8 @@ import statsmodels.api as sm
 import statsmodels.formula.api as smf
 import numpy as np
 import matplotlib.pyplot as plt
+import plotly.graph_objs as go
 import seaborn as sns
-from statsmodels.stats.outliers_influence import variance_inflation_factor
-from statsmodels.stats.diagnostic import het_breuschpagan, het_white
-from scipy import stats
-import base64
-from statsmodels.stats.stattools import durbin_watson
-from statsmodels.stats.diagnostic import linear_reset
-from statsmodels.graphics.gofplots import ProbPlot
 import scipy.stats as stats
 import scipy as sp
 import statsmodels.stats.diagnostic as smd
@@ -92,7 +84,8 @@ def app():
     
 
         st.title("Treating The Data")
-        tab1, tab2, tab3, tab4 = st.tabs(["Raw DataFrame", "Preprocessed DataFrame", "Correlation", "Linear Regression"])
+        tab1, tab2, tab3, tab4, tab5 = st.tabs(["Raw DataFrame", "Preprocessed DataFrame", "Correlation", 
+                                                "Linear Regression", "Regression with Scaling"])
 
         with tab1:
             st.header("This is Raw of uploading file")
@@ -259,9 +252,6 @@ def app():
                     X = data[features]
                     y = data[target]
 
-                                      
-
-                        
                     # Create and train the linear regression model
 
                     st.markdown(" <h3 style='text-align: right; color: lightblue; font-size:18;'> Run Regression with pure variables:</h3>", unsafe_allow_html=True)
@@ -274,36 +264,19 @@ def app():
 
 
                     model= LinearRegression().fit(X_train, y_train)
-                    #st.subheader("Model Summary")
-                    #st.text(model.summary().as_text())
-
-                    # Download link for regression results
-                    #summary_html = model.summary().as_html()
-                    #b64 = base64.b64encode(summary_html.encode()).decode()
-                    #href = f'<a href="data:text/html;base64,{b64}" download="regression_results.html">Download regression results as HTML</a>'
-                    #st.markdown(href, unsafe_allow_html=True)
-
-                    # Display coefficients
-                    #results = pd.DataFrame(list(zip(features, model.coef_[1:])),        
-                                            #columns=["Variable", "Coefficient"])
-                    #st.dataframe(results)
-
-                    #features
-                    #model.coef_[1:]
-                    #model.intercept_
-
-
+                        
                     coefficients = pd.DataFrame(model.coef_[1:], features, columns=['Coefficient'])
+                    coefficients.loc['intercept']=model.intercept_
                     st.write("Model Coefficients:")
                     st.dataframe(coefficients)
 
                     # Display regression equation
                     st.markdown(" <h4 style='text-align: right; color: green; font-size:18;'> Display regression equation:</h4>", unsafe_allow_html=True)
-
+                    coeff = pd.DataFrame(model.coef_[1:], features, columns=['Coefficient'])
                     equation = f"{target} = {model.intercept_:.2f}"
-    
-                    for i in range(0, len(coefficients)):
-                        equation += f" + ({coefficients.iloc[i, 0]:.2f} * {features[i]})"
+        
+                    for i in range(0, len(coeff)):
+                        equation += f" + ({coeff.iloc[i, 0]:.2f} * {features[i]})"
 
                     st.write("Regression Equation:")
                     st.write(equation)
@@ -357,16 +330,149 @@ def app():
                     # Labels
                     ax.legend((train, test), ('Training','Test'), loc='upper left')
                     ax.set_title('Residual Plots', color='darkorange',
-                                font='georgia', 
-                                fontweight= 'bold',
-                                fontsize= 18)
+                                  font='georgia', 
+                                  fontweight= 'bold',
+                                  fontsize= 18)
                     ax.grid(True, linestyle='--', alpha=0.7)
                     plt.xticks(rotation= 45)
                     st.write(fig)
-                    
 
+        with tab5:
 
+            st.markdown(" <h3 style='text-align: right; color: lightblue; font-size:18;'> Run Regression using Scaling:</h3>", unsafe_allow_html=True)
+
+            X = data[features]
+            y = data[target]
+            # Select scaling method 
+            scaling_method = st.selectbox("Select Scaling Method", options=["Min-Max Scaling", "Standardization"])        
 
             
+             # Scale the features based on the selected method
+            if scaling_method == "Min-Max Scaling":
+                feature_scaler = MinMaxScaler()
+                target_scaler = MinMaxScaler()
+                X = feature_scaler.fit_transform(X)
+                y = target_scaler.fit_transform(y.values.reshape(-1, 1)).flatten()  # Reshape for scaler
+            elif scaling_method == "Standardization":
+                feature_scaler = StandardScaler()
+                target_scaler = StandardScaler()
+                X = feature_scaler.fit_transform(X)
+                y = target_scaler.fit_transform(y.values.reshape(-1, 1)).flatten()  # Reshape for scaler
+
+                        
+
+            # Split the data into training and testing sets
+            X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=random_state)
+
+            # Create and fit the linear regression model using sklearn
+            model = LinearRegression()
+            model.fit(X_train, y_train)
+
+            # Make predictions
+            y_pred_test = model.predict(X_test)
+            y_pred_train = model.predict(X_train)
+
+
+            # Inverse transform the predictions if the target variable was scaled
+            if scaling_method == ["Min-Max Scaling", "Standardization"]:
+                y_pred_train = target_scaler.inverse_transform(y_pred_train.reshape(-1, 1)).flatten()
+                y_pred_test = target_scaler.inverse_transform(y_pred_test.reshape(-1, 1)).flatten()
+
+
+            # Calculate metrics
+            mse = mean_squared_error(y_test, y_pred_test)
+            r2 = r2_score(y_test, y_pred_test)
+            mae = mean_absolute_error(y_test, y_pred_test)
+            rmse= root_mean_squared_error(y_test, y_pred_test)
+
+                    
+                    # Display results
+                    #st.write("Model Performance on Test set:")
+            st.markdown(" <h4 style='text-align: right; color: green; font-size:18;'> Model Performance on Test set: </h4>", unsafe_allow_html=True)
+
+            output= pd.DataFrame({
+                'Mean Squared Error (MSE)':[round(mse, 2)],
+                 "R² Score": [round(r2, 2)],
+                 'Mean Absolute Error (MAE)' :[round(mae, 2)],
+                 'Root Mean Square Error (RMSE)': [round(rmse, 2)]
+            })
+            st.dataframe(output)
+
+            # Display predictions
+            predictions_df = pd.DataFrame({'Actual': y_test, 'Predicted': y_pred_test})
+            st.write("Predictions:")
+            st.dataframe(predictions_df.head())
+
+            # Display coefficients
+            coefficients = pd.DataFrame(model.coef_, features, columns=['Coefficient'])
+            st.write("Model Coefficients:")
+            st.dataframe(coefficients)
+
+            # Display regression equation
+            equation = f"{target} = {model.intercept_:.2f}"  # Intercept
+            for i in range(len(coefficients)):
+                equation += f" + ({coefficients.iloc[i, 0]:.2f} * {features[i]})"
+            st.write("Regression Equation:")
+            st.write(equation)
+                    
+            st.markdown(" <h4 style='text-align: right; color: green; font-size:18;'> Plotting Residuals: </h4>", unsafe_allow_html=True)
+            
+            # calculate the residuals
+            resid_train = y_train - y_pred_train
+            resid_test = y_test- y_pred_test
+            # Scatter plot the training data
+            plt.style.use('Solarize_Light2')
+            fig, ax = plt.subplots(figsize= (12, 6), facecolor= 'lightblue')
+            train = plt.scatter(x = y_pred_train, y = resid_train , c = 'b', alpha=0.5, marker='D')
+
+            # Scatter plot the testing data
+
+
+            test = plt.scatter(y_pred_test, resid_test , c = 'r', alpha=0.5, marker= '^')
+
+            # Plot a horizontal axis line at 0
+            ax.hlines(y = 0, xmin = -10, xmax = 50, linewidth= 2, color='k',linestyles = 'dashed' )
+
+            # Labels
+            ax.legend((train, test), ('Training','Test'), loc='upper left')
+            ax.set_title('Residual Plots', color='darkorange',
+                         font='georgia', 
+                         fontweight= 'bold',
+                         fontsize= 18)
+            ax.grid(True, linestyle='--', alpha=0.7)
+            plt.xticks(rotation= 45)
+            st.write(fig)
+
+            #########################################################
+
+            # Plotting residuals
+            fig, ax = plt.subplots(1, 2, figsize=(12, 5), facecolor= 'lightblue')
+
+            # Residuals for training set
+            ax[0].scatter(y_pred_train, resid_train, color='blue', alpha=0.5, marker= 'D')
+            ax[0].axhline(0, color='red', linestyle='--')
+            ax[0].set_title('Training Set Residuals', color='darkorange',
+                            font='georgia', 
+                            fontweight= 'bold',
+                            fontsize= 18)
+            ax[0].set_xlabel('Predicted Values')
+            ax[0].set_ylabel('Residuals')
+            ax[0].grid(True, linestyle='--', alpha=0.7)
+
+            # Residuals for testing set
+            ax[1].scatter(y_pred_test, resid_test, color='green', alpha=0.5, marker= 'D')
+            ax[1].axhline(0, color='red', linestyle='--')
+            ax[1].set_title('Testing Set Residuals', color='darkorange',
+                            font='georgia', 
+                            fontweight= 'bold',
+                            fontsize= 18)
+            ax[1].set_xlabel('Predicted Values')
+            ax[1].set_ylabel('Residuals')
+            ax[1].grid(True, linestyle='--', alpha=0.7)
+
+            # Display the plot in Streamlit
+            st.pyplot(fig)
+
+   
 if __name__ == "__main__":
     app()
