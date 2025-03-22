@@ -1,5 +1,6 @@
 streamlit
 sklearn
+scikit-learn
 seaborn
 matplotlib
 statsmodels
