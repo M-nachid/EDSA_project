@@ -1,9 +1,8 @@
 streamlit
+sklearn
 seaborn
 matplotlib
 statsmodels
 arch
 openpyxl
 scipy
-sklearn
-
